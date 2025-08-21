@@ -350,10 +350,14 @@ function ExerciseCard({ name, defaults, bodyweight, setBodyweight }) {
             min={isPullup && pullupInputMode === "external" ? -200 : 0}
           />
           <NumberInput label="Increment (kg)" value={increment} setValue={setIncrement} step={0.5} />
-          {name !== "Pull-up" && (
+          
+          {/* --- THIS IS THE FIX --- */}
+          {/* This uses `invisible` to hide the element while preserving its space, preventing layout shifts. */}
+          <div className={mode === 'Ladder' ? 'visible' : 'invisible'}>
             <NumberInput label="Ladder start-rep cap" value={cap} setValue={setCap} step={1} />
-          )}
-          {name === "Pull-up" && (
+          </div>
+
+          {isPullup && setBodyweight && (
             <NumberInput label="Bodyweight (kg)" value={bodyweight} setValue={setBodyweight} step={0.5} />
           )}
         </div>
@@ -372,13 +376,28 @@ function ExerciseCard({ name, defaults, bodyweight, setBodyweight }) {
   );
 }
 
-export default function App() {
+function ExerciseList() {
+  // State for bodyweight now lives here, where it's actually used.
   const [bodyweight, setBodyweight] = useState("80");
 
-  const [exerciseStates, setExerciseStates] = useState(() =>
-    LIFTS.map((name) => ({ name, ...DEFAULTS[name] }))
+  return (
+    <div className="grid gap-4">
+      {LIFTS.map((name) => (
+        <ExerciseCard
+          key={name}
+          name={name}
+          defaults={DEFAULTS[name]}
+          // Pass bodyweight and the setter function only to the Pull-up card
+          // For all other cards, these props will be null and won't interfere.
+          bodyweight={name === "Pull-up" ? bodyweight : null}
+          setBodyweight={name === "Pull-up" ? setBodyweight : null}
+        />
+      ))}
+    </div>
   );
+}
 
+export default function App() {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-5xl mx-auto grid gap-6">
@@ -390,17 +409,7 @@ export default function App() {
           </div>
         </header>
 
-        <div className="grid gap-4">
-          {LIFTS.map((name) => (
-            <ExerciseCard
-              key={name}
-              name={name}
-              defaults={DEFAULTS[name]}
-              bodyweight={parseFloat(bodyweight) || 80}
-              setBodyweight={setBodyweight}
-            />
-          ))}
-        </div>
+        <ExerciseList />
 
         <footer className="text-xs text-gray-500">
           <p>Tip: Cap ladder start-reps to keep sessions short. For pull-ups, switch to external mode to log assistance (negative kg).</p>
