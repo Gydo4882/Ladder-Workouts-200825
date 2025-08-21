@@ -115,7 +115,11 @@ function rpPercentPlan({ dailyMax }) {
     reps: s.reps,
     note: `${Math.round(s.pct * 100)}%`,
   }));
+  
+  // --- THIS IS THE FIX FOR THE TONNAGE BUG ---
+  // The (parseInt(b.reps) || 0) is critical because b.reps is a string like "1+"
   const tonnage = round2(sets.reduce((a, b) => a + b.weight * (parseInt(b.reps) || 0), 0));
+  
   const heavyReps = sets.filter((s) => s.weight >= 0.8 * dailyMax).reduce((a, b) => a + (parseInt(b.reps) || 0), 0);
   return { sets, tonnage, heavyReps };
 }
@@ -351,8 +355,6 @@ function ExerciseCard({ name, defaults, bodyweight, setBodyweight }) {
           />
           <NumberInput label="Increment (kg)" value={increment} setValue={setIncrement} step={0.5} />
           
-          {/* --- THIS IS THE FIX --- */}
-          {/* This uses `invisible` to hide the element while preserving its space, preventing layout shifts. */}
           <div className={mode === 'Ladder' ? 'visible' : 'invisible'}>
             <NumberInput label="Ladder start-rep cap" value={cap} setValue={setCap} step={1} />
           </div>
